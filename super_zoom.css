@@ -1,0 +1,14 @@
+.image-container {
+  position: relative;
+  display: inline-block; /* ou block selon ton contexte */
+}
+
+
+#zoom-btn {
+  position: absolute;
+  top: 5px;
+  right: -80px;
+  cursor: pointer;
+  z-index: 10; /* pour être sûr que ça soit au-dessus */
+}
+
