@@ -1,26 +1,26 @@
-<a id="zoom-btn" class="nav-link" title="Zoomer" rel="nofollow" onclick="openZoomPopup()">
-  <img src="{$ROOT_URL}plugins/super_zoom/image/zoom.png" width="32" height="32" alt="Zoom">
-</a>
+<button id="openButton" class="btn-open-modal-zoom">
+  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24">
+    <path stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m20 20-5.05-5.05m0 0a7 7 0 1 0-9.9-9.9 7 7 0 0 0 9.9 9.9ZM7 10h6m-3-3v6"/>
+  </svg>
+</button>
 
-<div id="zoom-popup" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; background:#000; z-index:9999; justify-content:center; align-items:center;">
-  <img id="zoom-image" style="max-width:90vw; max-height:90vh; cursor:move;">
-  <button onclick="closeZoomPopup()" style="position:absolute; top:10px; right:10px; font-size:24px;">✖</button>
-</div>
-
-<script>
-function openZoomPopup() {
-  const popup = document.getElementById("zoom-popup");
-  const image = document.getElementById("zoom-image");
-
-  // 🔽 utilise la variable JS définie dans super_zoom_url.tpl
-  image.src = window.jsUrlSUPZ;
-
-  popup.style.display = "flex";
-  WheelZoom(image, { zoom: 0.1 });
-}
-
-function closeZoomPopup() {
-  const popup = document.getElementById("zoom-popup");
-  popup.style.display = "none";
-}
-</script>
+<dialog>
+  <div id="myWrapper">
+    <div id="myViewport">
+      <div id="myContent">
+        <img src="{$IMG_URL_SUPZ}" alt="image"/>
+      </div>
+    </div>
+  </div>
+  <div class="modal-buttons">
+    <button data-zoom-down class="btn">
+      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24"><path stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 12h12"/></svg>
+    </button>
+    <button data-zoom-up class="btn">
+      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24"><path stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 12h6m0 0h6m-6 0v6m0-6V6"/></svg>
+    </button>
+    <button autofocus id="closeButton" class="btn btn-close-modal-zoom">
+      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24"><path stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 5 5 19M5 5l14 14"/></svg>
+    </button>
+  </div>
+</dialog>
