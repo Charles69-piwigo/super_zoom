@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: super_zoom
-Version: 1.1
+Version: 1.2
 Description: super_zoom permet de zoomer/dézoomer sur une image
 Plugin URI: 
 Author: Charles69
@@ -20,7 +20,8 @@ Author URI:
  // ============  VERSIONS de SUPER_ZOOM =========================================================
  // historique des versions
  /*
-
+  version 1.2 - 18/07/2025 - diffusion piwigo
+      nettoyage du code , renommage des classes, corrigé position loupe + double ascenceur
   version 1.1 - 12/07/2025 (diffusion Piwigo) 
   version 1.0 - 09/07/2025 (beta)
   
@@ -105,7 +106,7 @@ function ajouter_superzoomcontrol() {
 
 function addButton_superzoom($content) {
   $search = '{$ELEMENT_CONTENT}';
-  $replacement = '<div>{$ELEMENT_CONTENT}{$BT_SUPZ}</div>';
+  $replacement = '<div class="superzoom"><div class="superzoom-container">{$ELEMENT_CONTENT}{$BT_SUPZ}</div>';
   return str_replace($search, $replacement, $content);
 }
 ?>
