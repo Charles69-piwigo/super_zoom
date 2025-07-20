@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: super_zoom
-Version: 1.2
+Version: 1.3
 Description: super_zoom permet de zoomer/dézoomer sur une image
 Plugin URI: 
 Author: Charles69
@@ -20,7 +20,11 @@ Author URI:
  // ============  VERSIONS de SUPER_ZOOM =========================================================
  // historique des versions
  /*
-  version 1.2 - 18/07/2025 - diffusion piwigo
+ 
+ version 1.3 - 20/07/2025 - diffusion piwigo
+      affichage de la loupe uniquement sur les images , pas sur les vidéos
+      simplification du code php
+ version 1.2 - 18/07/2025 - diffusion piwigo
       nettoyage du code , renommage des classes, corrigé position loupe + double ascenceur
   version 1.1 - 12/07/2025 (diffusion Piwigo) 
   version 1.0 - 09/07/2025 (beta)
@@ -54,55 +58,48 @@ function super_zoom_link() {
   ');
 }
 
-// Hook principal : analyse image et assignation des variables
-add_event_handler('loc_end_picture', 'super_zoom_url');
-function super_zoom_url() {
+
+add_event_handler('loc_end_picture', 'super_zoom_prepare');
+
+function super_zoom_prepare() {
   global $template, $picture;
 
-  if (!isset($picture['current']['path'])) {
-    return;
-  }
+  if (!isset($picture['current']['path'])) return;
 
-  // Construction de l’URL absolue de l’image
-  $url_base = get_absolute_root_url();              // ex: https://mon.site/photo/
-  $url_picture = $picture['current']['path'];       // ./upload/...
-  $url_relative = substr($url_picture, 2);          // enleve './'
-  $url_original = $url_base . $url_relative;        // URL absolue
-
-  // Mime type
+  $url_picture = $picture['current']['path'];
   $mime_type = mime_content_type($url_picture);
+  //echo "MIME TYPE" , $mime_type ;
 
-  // Si ce n’est pas une vidéo
-  if ($mime_type !== 'video/mp4') {
-    // Assignation Smarty
-    $template->assign('IMG_URL_SUPZ', $url_original);
-    $template->assign('MIME_TYPE_SUPZ', $mime_type);
+  // Si ce n’est pas une image JPEG, on arrête là
+  $mime_liste = ['image/jpeg', 'image/png', 'image/webp'] ; // liste des mimes ok
+  if (!in_array($mime_type, $mime_liste)) return;
+  //if ($mime_type !== 'image/jpeg') return;
 
- } else {
-    $template->assign('IMG_URL_SUPZ', ZOOM_PATH . 'image/pas_de_zoom.jpg');
-    $template->assign('MIME_TYPE_SUPZ', $mime_type);  
- } 
-    // ➕ Génération du bloc bouton ZOOM ici
-    $template->set_filename('zoomcontrol', ZOOM_PATH . 'template/super_zoom_control.tpl');
-    $template->assign('BT_SUPZ', $template->parse('zoomcontrol', true));
-  
+  // URL absolue de l’image
+  $url_base = get_absolute_root_url();
+  $url_relative = substr($url_picture, 2);
+  $url_original = $url_base . $url_relative;
 
-  // ➕ Génération des variables JS dans le footer
-  $template->set_filenames(array('zoom_footer' => realpath(ZOOM_PATH . 'template/super_zoom_url.tpl')));
+  // Assignation Smarty
+  $template->assign('IMG_URL_SUPZ', $url_original);
+  $template->assign('MIME_TYPE_SUPZ', $mime_type);
+
+  // Bouton de zoom
+  $template->set_filename('zoomcontrol', ZOOM_PATH . 'template/super_zoom_control.tpl');
+  $template->assign('BT_SUPZ', $template->parse('zoomcontrol', true));
+
+  // Insertion du bouton via prefilter
+  $template->set_prefilter('picture', 'addButton_superzoom');
+
+  // JS à insérer dans le footer
+  $template->set_filenames(['zoom_footer' => realpath(ZOOM_PATH . 'template/super_zoom_url.tpl')]);
   ob_start();
   $template->parse('zoom_footer');
   $footer_content = ob_get_clean();
   $template->append('footer_elements', $footer_content);
 }
 
-// Ajout du bouton ZOOM dans la page picture.tpl (dans la balise contenant l’image)
-add_event_handler('loc_begin_picture', 'ajouter_superzoomcontrol');
-function ajouter_superzoomcontrol() {
-  global $template;
-  // Pas besoin de générer ici le template : il a été assigné dans loc_end_picture
-  // Il suffit d’insérer {$BT_SUPZ} dans le HTML
-  $template->set_prefilter('picture', 'addButton_superzoom');
-}
+
 
 function addButton_superzoom($content) {
   $search = '{$ELEMENT_CONTENT}';
