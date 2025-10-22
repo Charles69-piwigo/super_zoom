@@ -4,7 +4,7 @@
   </svg>
 </button>
 
-<dialog class=superzoom-dialog>
+<dialog class="superzoom-dialog">
   <div class="superzoom-wrapper">
     <div id="superzoom-viewport" class="superzoom-viewport">
       <div id="superzoom-content" class="superzoom-content">

@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: super_zoom
-Version: 1.3
+Version: 1.5
 Description: super_zoom permet de zoomer/dézoomer sur une image
 Plugin URI: 
 Author: Charles69
@@ -20,6 +20,11 @@ Author URI:
  // ============  VERSIONS de SUPER_ZOOM =========================================================
  // historique des versions
  /*
+
+ version 1.5 - 11/10/2025
+       désactivation du plugin sur mobile
+       conflit avec photosphere, désactivation du plugin quand la photo est de type photosphere
+
  
  version 1.3 - 20/07/2025 - diffusion piwigo
       affichage de la loupe uniquement sur les images , pas sur les vidéos
@@ -74,6 +79,12 @@ function super_zoom_prepare() {
   $mime_liste = ['image/jpeg', 'image/png', 'image/webp'] ; // liste des mimes ok
   if (!in_array($mime_type, $mime_liste)) return;
   //if ($mime_type !== 'image/jpeg') return;
+
+  // Si c'est une photosphere on arrête là // demande Katryne  09/2025
+  // echo "photosphere" , $picture['current']['is_sphere'] ;
+  //if ($picture['current']['is_sphere']) return;
+  if (!empty($picture['current']['is_sphere'])) return;
+
 
   // URL absolue de l’image
   $url_base = get_absolute_root_url();
