@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: super_zoom
-Version: 1.5
+Version: 1.6
 Description: super_zoom permet de zoomer/dézoomer sur une image
 Plugin URI: 
 Author: Charles69
@@ -21,9 +21,13 @@ Author URI:
  // historique des versions
  /*
 
+ version 1.6 - 30/10/2025
+      conflit avec filigrane, dans ce cas le zoom est fait sur la plus grandes des miniatures autorisées,
+      si elle n'existe pas elle est créée
+
  version 1.5 - 11/10/2025
-       désactivation du plugin sur mobile
-       conflit avec photosphere, désactivation du plugin quand la photo est de type photosphere
+      désactivation du plugin sur mobile
+      conflit avec photosphere, désactivation du plugin quand la photo est de type photosphere
 
  
  version 1.3 - 20/07/2025 - diffusion piwigo
@@ -75,21 +79,66 @@ function super_zoom_prepare() {
   $mime_type = mime_content_type($url_picture);
   //echo "MIME TYPE" , $mime_type ;
 
-  // Si ce n’est pas une image JPEG, on arrête là
+  // Si ce n’est pas une image JPEG, on arrête là ********************************************
   $mime_liste = ['image/jpeg', 'image/png', 'image/webp'] ; // liste des mimes ok
   if (!in_array($mime_type, $mime_liste)) return;
   //if ($mime_type !== 'image/jpeg') return;
-
-  // Si c'est une photosphere on arrête là // demande Katryne  09/2025
+  
+  // Si c'est une photosphere on arrête là // demande Katryne  09/2025 *********************
   // echo "photosphere" , $picture['current']['is_sphere'] ;
   //if ($picture['current']['is_sphere']) return;
   if (!empty($picture['current']['is_sphere'])) return;
 
+  
+  // TEST sur Filigrane watermark Activé -----------------------------------
+  include_once(PHPWG_ROOT_PATH . 'admin/include/image.class.php');
 
-  // URL absolue de l’image
-  $url_base = get_absolute_root_url();
-  $url_relative = substr($url_picture, 2);
-  $url_original = $url_base . $url_relative;
+  $derivative = $picture['current']['derivatives']['large'];
+
+  $ref = new ReflectionClass($derivative);
+  $prop = $ref->getProperty('params');
+  $prop->setAccessible(true);
+  $params = $prop->getValue($derivative);
+
+  $use_watermark = false; // valeur par défaut
+
+    if (!is_null($params) && property_exists($params, 'use_watermark')) {
+      $use_watermark = $params->use_watermark;
+    }
+
+ 
+  /*
+  echo '<pre>';
+  var_dump($use_watermark);
+  echo '</pre>';
+ */
+
+
+
+
+  // si l'option filigrane est activée on utilise la miniature la plus grande au lieu de l'original
+  if ($use_watermark) {
+    include_once(PHPWG_ROOT_PATH . 'include/derivative.inc.php');
+    include_once(PHPWG_ROOT_PATH . 'include/derivative_std_params.inc.php');
+
+    $params = ImageStdParams::get_by_type(IMG_XXLARGE);
+    $src = $picture['current']['src_image'];
+    $derivative = new DerivativeImage($params, $src);
+    $url_zoom = $derivative->get_url();
+    $url_base = get_absolute_root_url();
+    $url_relative = substr($url_picture, 2);
+    $url_original = $url_base . $url_zoom;
+    //echo 'filigrane ',$url_original ;
+
+  } else {
+
+      // URL absolue de l’image
+    $url_base = get_absolute_root_url();
+    $url_relative = substr($url_picture, 2);
+    $url_original = $url_base . $url_relative;
+    //echo 'originale ',$url_original ;
+
+  }
 
   // Assignation Smarty
   $template->assign('IMG_URL_SUPZ', $url_original);
@@ -108,6 +157,7 @@ function super_zoom_prepare() {
   $template->parse('zoom_footer');
   $footer_content = ob_get_clean();
   $template->append('footer_elements', $footer_content);
+  
 }
 
 
