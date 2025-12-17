@@ -1,9 +1,9 @@
 <?php
 /*
 Plugin Name: super_zoom
-Version: 1.6
+Version: 1.7
 Description: super_zoom permet de zoomer/dézoomer sur une image
-Plugin URI: 
+Plugin URI: https://piwigo.org/ext/extension_view.php?eid=1039
 Author: Charles69
 Author URI: 
 */
@@ -16,10 +16,12 @@ Author URI:
  * Voir le fichier LICENSE pour plus de détails.
  */
 
-
  // ============  VERSIONS de SUPER_ZOOM =========================================================
  // historique des versions
  /*
+
+ version 1.7 - 17/12/2025
+      prise en compte du plugin Back2Front
 
  version 1.6 - 30/10/2025
       conflit avec filigrane, dans ce cas le zoom est fait sur la plus grandes des miniatures autorisées,
@@ -37,8 +39,7 @@ Author URI:
       nettoyage du code , renommage des classes, corrigé position loupe + double ascenceur
   version 1.1 - 12/07/2025 (diffusion Piwigo) 
   version 1.0 - 09/07/2025 (beta)
-  
-  
+    
  */
 
 defined('PHPWG_ROOT_PATH') or die('Hacking attempt!');
@@ -52,10 +53,12 @@ if (basename(dirname(__FILE__)) != 'super_zoom') {
   return;
 }
 
+//-----------------------------------------------------------------------------------
 // Constantes plugin
 define('ZOOM_DIR', basename(dirname(__FILE__)));
 define('ZOOM_PATH', PHPWG_PLUGINS_PATH . ZOOM_DIR . '/');
 
+//----------------------------------------------------------------------------------
 // Chargement scripts JS et CSS dans le footer
 add_event_handler('loc_begin_page_tail', 'super_zoom_link');
 function super_zoom_link() {
@@ -67,30 +70,34 @@ function super_zoom_link() {
   ');
 }
 
+//---------------------------------------------------------------------------------
+// Logs
+//error_reporting(E_ALL);
+//ini_set('display_errors', 0);
+//ini_set('log_errors', 1);
+//ini_set('error_log', './plugins/super_zoom/super_zoom_debug.log');
 
+
+//--------------------------------------------------------------------------------
 add_event_handler('loc_end_picture', 'super_zoom_prepare');
 
 function super_zoom_prepare() {
-  global $template, $picture;
+  global $template, $picture, $prefixeTable;
 
   if (!isset($picture['current']['path'])) return;
 
   $url_picture = $picture['current']['path'];
   $mime_type = mime_content_type($url_picture);
-  //echo "MIME TYPE" , $mime_type ;
 
-  // Si ce n’est pas une image JPEG, on arrête là ********************************************
-  $mime_liste = ['image/jpeg', 'image/png', 'image/webp'] ; // liste des mimes ok
+  // Si ce n'est pas une image JPEG, on arrête là
+  $mime_liste = ['image/jpeg', 'image/png', 'image/webp'];
   if (!in_array($mime_type, $mime_liste)) return;
-  //if ($mime_type !== 'image/jpeg') return;
   
-  // Si c'est une photosphere on arrête là // demande Katryne  09/2025 *********************
-  // echo "photosphere" , $picture['current']['is_sphere'] ;
-  //if ($picture['current']['is_sphere']) return;
+  // Si c'est une photosphere on arrête là
   if (!empty($picture['current']['is_sphere'])) return;
 
   
-  // TEST sur Filigrane watermark Activé -----------------------------------
+  // TEST sur Filigrane watermark Activé
   include_once(PHPWG_ROOT_PATH . 'admin/include/image.class.php');
 
   $derivative = $picture['current']['derivatives']['large'];
@@ -100,21 +107,11 @@ function super_zoom_prepare() {
   $prop->setAccessible(true);
   $params = $prop->getValue($derivative);
 
-  $use_watermark = false; // valeur par défaut
+  $use_watermark = false;
 
-    if (!is_null($params) && property_exists($params, 'use_watermark')) {
-      $use_watermark = $params->use_watermark;
-    }
-
- 
-  /*
-  echo '<pre>';
-  var_dump($use_watermark);
-  echo '</pre>';
- */
-
-
-
+  if (!is_null($params) && property_exists($params, 'use_watermark')) {
+    $use_watermark = $params->use_watermark;
+  }
 
   // si l'option filigrane est activée on utilise la miniature la plus grande au lieu de l'original
   if ($use_watermark) {
@@ -126,23 +123,67 @@ function super_zoom_prepare() {
     $derivative = new DerivativeImage($params, $src);
     $url_zoom = $derivative->get_url();
     $url_base = get_absolute_root_url();
-    $url_relative = substr($url_picture, 2);
     $url_original = $url_base . $url_zoom;
-    //echo 'filigrane ',$url_original ;
-
   } else {
-
-      // URL absolue de l’image
+    // URL absolue de l'image originale
     $url_base = get_absolute_root_url();
     $url_relative = substr($url_picture, 2);
     $url_original = $url_base . $url_relative;
-    //echo 'originale ',$url_original ;
-
   }
 
-  // Assignation Smarty
+  // Assignation Smarty pour le RECTO
   $template->assign('IMG_URL_SUPZ', $url_original);
   $template->assign('MIME_TYPE_SUPZ', $mime_type);
+
+  // ============= GESTION BACK2FRONT =============
+  // Vérifier si Back2Front est présent en testant l'existence de la table
+  $b2f_table = $prefixeTable . 'image_verso';
+  $query_check = "SHOW TABLES LIKE '" . $b2f_table . "'";
+  $result_check = pwg_query($query_check);
+  
+  if (pwg_db_num_rows($result_check) > 0) {
+    // Back2Front est installé, chercher si l'image a un verso
+            $query = '
+        SELECT i.id, i.path
+          FROM ' . IMAGES_TABLE . ' as i
+            INNER JOIN ' . $b2f_table . ' as v
+            ON i.id = v.verso_id
+            AND v.image_id = ' . $picture['current']['id'] . '
+        ;';
+    
+    $result = pwg_query($query);
+    
+    if (pwg_db_num_rows($result) > 0) {
+      $verso = pwg_db_fetch_assoc($result);
+      
+      // Construire l'URL du verso (avec filigrane si activé)
+      if ($use_watermark) {
+        // Si filigrane activé, utiliser IMG_XXLARGE comme pour le recto
+        include_once(PHPWG_ROOT_PATH . 'include/derivative.inc.php');
+        include_once(PHPWG_ROOT_PATH . 'include/derivative_std_params.inc.php');
+        
+        $params = ImageStdParams::get_by_type(IMG_XXLARGE);
+        $verso_src = new SrcImage($verso);
+        $derivative = new DerivativeImage($params, $verso_src);
+        $url_verso = $derivative->get_url();
+        $url_base = get_absolute_root_url();
+        $url_verso_full = $url_base . $url_verso;
+      } else {
+        // Sinon, image originale
+        $url_base = get_absolute_root_url();
+        $url_relative = substr($verso['path'], 2);
+        $url_verso_full = $url_base . $url_relative;
+      }
+      
+      // Passer l'URL du verso au JavaScript
+      $template->append('footer_elements', '
+  <script>
+    window.jsUrlVersoSUPZ = "' . $url_verso_full . '";
+  </script>
+  ');
+    }
+  }
+  // ============= FIN GESTION BACK2FRONT =============
 
   // Bouton de zoom
   $template->set_filename('zoomcontrol', ZOOM_PATH . 'template/super_zoom_control.tpl');
@@ -157,14 +198,17 @@ function super_zoom_prepare() {
   $template->parse('zoom_footer');
   $footer_content = ob_get_clean();
   $template->append('footer_elements', $footer_content);
-  
 }
-
-
+//======================================================================================
 
 function addButton_superzoom($content) {
   $search = '{$ELEMENT_CONTENT}';
   $replacement = '<div class="superzoom"><div class="superzoom-container">{$ELEMENT_CONTENT}{$BT_SUPZ}</div>';
   return str_replace($search, $replacement, $content);
 }
+
+
+
+
+//------------------------------------------------------------------------------
 ?>

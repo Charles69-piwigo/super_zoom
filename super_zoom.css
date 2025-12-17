@@ -119,8 +119,14 @@
 
 
 @media screen and (max-width: 767px) {
+
+
   .superzoom-btn-open {
+
     display: none !important;
+    /*left: calc(100% - 50px); */
+
+
   }
   
 
