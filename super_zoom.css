@@ -8,6 +8,7 @@
   display: inline-block;
 }
 
+/* Position par défaut : à côté de la photo */
 .superzoom-btn-open {
   position: absolute;
   top: 0;
@@ -22,6 +23,22 @@
   aspect-ratio: 1;
   cursor: pointer;
   z-index: 10;
+  width: 42px;
+  height: 42px;
+}
+
+/* Position dans la navbar */
+.imageToolBar .superzoom-btn-open {
+  position: relative;
+  left: auto;
+  top: auto;
+  margin: 0 5px;
+}
+
+/* Ajustement de l'icône SVG dans la navbar */
+.imageToolBar .superzoom-btn-open svg {
+  width: 24px;
+  height: 24px;
 }
 
 .superzoom-wrapper {
@@ -131,4 +148,3 @@
   
 
 }   /*  fin du mobile */
-

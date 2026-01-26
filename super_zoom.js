@@ -12,109 +12,120 @@ document.addEventListener('DOMContentLoaded', function () {
   var imageElement = document.getElementById('superzoom-content').querySelector('img');
   var zoomUpButton = document.querySelector('[data-zoom-up]');
   var zoomDownButton = document.querySelector('[data-zoom-down]');
-  var wzoom;
+  var wzoom = null;
+  var isModalOpen = false;
 
   // Fonction pour obtenir l'URL de l'image à zoomer
-// Fonction pour obtenir l'URL de l'image à zoomer
-function getCurrentImageUrl() {
-  //console.log("=== getCurrentImageUrl appelée ===");
-  
-  // Vérifier si on est sur le verso
-  var versoPage = document.getElementById('theVersoImage');
-  //console.log("Element theVersoImage:", versoPage);
-  
-  if (versoPage) {
-    var displayStyle = window.getComputedStyle(versoPage).display;
-    //console.log("Display du verso:", displayStyle);
+  function getCurrentImageUrl() {
+    // Vérifier si on est sur le verso
+    var versoPage = document.getElementById('theVersoImage');
     
-    if (displayStyle !== 'none') {
-      //console.log("Le verso est visible !");
-      //console.log("window.jsUrlVersoSUPZ:", window.jsUrlVersoSUPZ);
+    if (versoPage) {
+      var displayStyle = window.getComputedStyle(versoPage).display;
       
-      // On est sur le verso, utiliser l'URL originale du verso
-      if (typeof window.jsUrlVersoSUPZ !== 'undefined') {
-        //console.log("Retour URL verso:", window.jsUrlVersoSUPZ);
-        return window.jsUrlVersoSUPZ;
-      } else {
-        //console.log("ERREUR: jsUrlVersoSUPZ non défini !");
+      if (displayStyle !== 'none') {
+        // On est sur le verso, utiliser l'URL originale du verso
+        if (typeof window.jsUrlVersoSUPZ !== 'undefined') {
+          return window.jsUrlVersoSUPZ;
+        }
       }
-    } else {
-      //console.log("Le verso n'est PAS visible");
     }
-  } else {
-    //console.log("Element theVersoImage introuvable");
+    
+    // Par défaut, utiliser l'URL originale du recto
+    if (typeof window.jsUrlSUPZ !== 'undefined') {
+      return window.jsUrlSUPZ;
+    }
+    
+    // Fallback : retourner l'image actuellement dans le modal
+    return imageElement.src;
   }
-  
-  // Par défaut, utiliser l'URL originale du recto
-  //console.log("window.jsUrlSUPZ:", window.jsUrlSUPZ);
-  if (typeof window.jsUrlSUPZ !== 'undefined') {
-    //console.log("Retour URL recto:", window.jsUrlSUPZ);
-    return window.jsUrlSUPZ;
-  }
-  
-  // Fallback : retourner l'image actuellement dans le modal
-  //console.log("Fallback - image du modal:", imageElement.src);
-  return imageElement.src;
-}
 
-// Mettre à jour l'URL de l'image dans le modal
-function updateModalImage() {
-  var currentUrl = getCurrentImageUrl();
-  var modalImg = document.getElementById('superzoom-content').querySelector('img');
-  
-  //console.log("updateModalImage - URL actuelle du modal:", modalImg.src);
-  //console.log("updateModalImage - Nouvelle URL:", currentUrl);
-  
-  if (modalImg && modalImg.src !== currentUrl) {
-    //console.log("Changement d'image détecté - Réinitialisation de WZoom");
+  // Mettre à jour l'URL de l'image dans le modal
+  function updateModalImage() {
+    var currentUrl = getCurrentImageUrl();
+    var modalImg = document.getElementById('superzoom-content').querySelector('img');
     
-    // Détruire l'ancienne instance de WZoom
-    if (typeof wzoom !== 'undefined' && wzoom.destroy) {
-      wzoom.destroy();
-      //console.log("Ancienne instance WZoom détruite");
+    if (modalImg && modalImg.src !== currentUrl) {
+      // Détruire l'ancienne instance de WZoom SEULEMENT si elle existe
+      if (wzoom && typeof wzoom.destroy === 'function') {
+        try {
+          wzoom.destroy();
+        } catch(e) {
+          console.warn('Erreur lors de la destruction de WZoom:', e);
+        }
+        wzoom = null;
+      }
+      
+      // Changer l'image
+      modalImg.src = currentUrl;
+      
+      // Attendre que la nouvelle image soit chargée avant de recréer wzoom
+      modalImg.onload = function() {
+        // Recréer WZoom avec les nouvelles dimensions
+        wzoom = WZoom.create('#superzoom-content', {
+          type: 'html',
+          width: modalImg.naturalWidth,
+          height: modalImg.naturalHeight,
+          zoomOnClick: false,
+          smoothTimeDrag: 0.1,
+          maxScale: 5,
+          onGrab: function () {
+            document.getElementById('superzoom-viewport').style.cursor = 'grabbing';
+          },
+          onDrop: function () {
+            document.getElementById('superzoom-viewport').style.cursor = 'grab';
+          },
+        });
+      };
+    }
+  }
+
+  // Fonction pour fermer proprement la modale
+  function closeModal() {
+    if (!isModalOpen) return;
+    
+    // Retirer le focus du bouton si c'est lui qui a déclenché la fermeture
+    if (document.activeElement === closeButton) {
+      closeButton.blur();
     }
     
-    // Changer l'image
-    modalImg.src = currentUrl;
+    // Fermer la modale
+    dialog.close();
+    isModalOpen = false;
     
-    // Attendre que la nouvelle image soit chargée avant de recréer wzoom
-    modalImg.onload = function() {
-      //console.log("Nouvelle image chargée, dimensions:", modalImg.naturalWidth, "x", modalImg.naturalHeight);
-      
-      // Recréer WZoom avec les nouvelles dimensions
-      wzoom = WZoom.create('#superzoom-content', {
-        type: 'html',
-        width: modalImg.naturalWidth,
-        height: modalImg.naturalHeight,
-        zoomOnClick: false,
-        smoothTimeDrag: 0.1,
-        maxScale: 5,
-        onGrab: function () {
-          document.getElementById('superzoom-viewport').style.cursor = 'grabbing';
-        },
-        onDrop: function () {
-          document.getElementById('superzoom-viewport').style.cursor = 'grab';
-        },
-      });
-      
-      //console.log("Nouvelle instance WZoom créée");
-    };
-  } else {
-    //console.log("Pas de changement d'image nécessaire");
+    // Restaurer le focus sur le body
+    document.body.focus();
+    
+    // NE PAS détruire wzoom ici, on le garde pour la prochaine ouverture
   }
-}
 
   // Event listeners pour le modal
   openButton.addEventListener("click", function() {
     dialog.showModal();
+    isModalOpen = true;
     updateModalImage();
   });
   
   closeButton.addEventListener("click", function() {
-    dialog.close();
+    closeModal();
   });
 
-  // Initialisation
+  // Fermeture au clic en dehors de la modale
+  dialog.addEventListener('click', function(event) {
+    if (event.target === dialog) {
+      closeModal();
+    }
+  });
+
+  // Fermeture avec la touche Échap
+  dialog.addEventListener('close', function() {
+    if (isModalOpen) {
+      isModalOpen = false;
+      document.body.focus();
+    }
+  });
+
+  // Initialisation au chargement de la page
   if (imageElement.complete) {
     init();
   } else {
@@ -122,7 +133,6 @@ function updateModalImage() {
   }
 
   function init() {
-
     wzoom = WZoom.create('#superzoom-content', {
       type: 'html',
       width: imageElement.naturalWidth,
@@ -139,16 +149,21 @@ function updateModalImage() {
     });
 
     zoomUpButton.addEventListener('click', function () {
-      wzoom.zoomUp();
+      if (wzoom && typeof wzoom.zoomUp === 'function') {
+        wzoom.zoomUp();
+      }
     });
 
     zoomDownButton.addEventListener('click', function () {
-      wzoom.zoomDown();
+      if (wzoom && typeof wzoom.zoomDown === 'function') {
+        wzoom.zoomDown();
+      }
     });
 
     window.addEventListener('resize', function () {
-      wzoom.prepare();
+      if (wzoom && typeof wzoom.prepare === 'function') {
+        wzoom.prepare();
+      }
     });
-
   }
 });

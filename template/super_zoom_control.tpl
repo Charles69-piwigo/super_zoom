@@ -19,7 +19,7 @@
     <button data-zoom-up class="superzoom-dialog-btn">
       <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24"><path stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 12h6m0 0h6m-6 0v6m0-6V6"/></svg>
     </button>
-    <button autofocus id="superzoom-btn-close" class="superzoom-dialog-btn superzoom-btn-close">
+    <button id="superzoom-btn-close" class="superzoom-dialog-btn superzoom-btn-close">
       <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24"><path stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 5 5 19M5 5l14 14"/></svg>
     </button>
   </div>

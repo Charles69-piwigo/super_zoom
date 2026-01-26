@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: super_zoom
-Version: 1.7
+Version: 1.9
 Description: super_zoom permet de zoomer/dézoomer sur une image
 Plugin URI: https://piwigo.org/ext/extension_view.php?eid=1039
 Author: Charles69
@@ -18,7 +18,15 @@ Author URI:
 
  // ============  VERSIONS de SUPER_ZOOM =========================================================
  // historique des versions
- /*
+  /*
+ version 1.9 - 26/01/2026
+      ajout page de configuration pour choisir la position du bouton loupe
+      
+ version 1.8a 1.8b - 23/01/2026
+      corrigé erreurs js - les flèches fonctionnent  
+      
+ version 1.8 - 20/01/2026
+      corrigé : déplacement dans l'album avec les flèches ( pb de focus sur la loupe )
 
  version 1.7 - 17/12/2025
       prise en compte du plugin Back2Front
@@ -58,42 +66,73 @@ if (basename(dirname(__FILE__)) != 'super_zoom') {
 define('ZOOM_DIR', basename(dirname(__FILE__)));
 define('ZOOM_PATH', PHPWG_PLUGINS_PATH . ZOOM_DIR . '/');
 
+//===================== CHARGEMENT DES LANGUES , UK PAR DEFAUT ==================
+// Charger d'abord l'anglais comme base
+load_language('plugin.lang', ZOOM_PATH, array('language' => 'en_UK', 'no_fallback' => true));
+// Puis charger la langue de l'utilisateur (qui écrasera l'anglais si c'est du français)
+load_language('plugin.lang', ZOOM_PATH);
+//===========================================================================
+
+
+//---------------------------------------------------------------------------------
+// Logs  --- à activer pour débugage
+error_reporting(E_ALL);
+ini_set('display_errors', 0);
+ini_set('log_errors', 1);
+ini_set('error_log', './plugins/super_zoom/super_zoom_debug.log');
+error_log('-------- DEBUT DEBUG -----------');
+
+//-----------------------------------------------------------------------------------
+// Ajout du lien dans le menu admin
+add_event_handler('get_admin_plugin_menu_links', 'super_zoom_admin_menu');
+function super_zoom_admin_menu($menu) {
+  $menu[] = array(
+    'NAME' => 'Super Zoom',
+    'URL'  => get_root_url() . 'admin.php?page=plugin-' . ZOOM_DIR
+  );
+  return $menu;
+}
+
 //----------------------------------------------------------------------------------
 // Chargement scripts JS et CSS dans le footer
 add_event_handler('loc_begin_page_tail', 'super_zoom_link');
+
 function super_zoom_link() {
-  global $template;
+  global $template, $conf ;
+
+  // Récupération de la position du bouton
+  $super_zoom_config = isset($conf['super_zoom_config']) ? safe_unserialize($conf['super_zoom_config']) : array('button_position' => 'photo');
+  $button_position = isset($super_zoom_config['button_position']) ? $super_zoom_config['button_position'] : 'photo';
+  error_log('ligne 98 - button position hook = '. $button_position);
+  
   $template->append('footer_elements', '
     <script src="plugins/super_zoom/vanilla/wheel-zoom.min.js"></script>
     <script src="plugins/super_zoom/super_zoom.js"></script>
     <link rel="stylesheet" href="plugins/super_zoom/super_zoom.css" />
+    <script>
+      window.superZoomButtonPosition = "' . $button_position . '";
+    </script>
   ');
 }
 
-//---------------------------------------------------------------------------------
-// Logs
-//error_reporting(E_ALL);
-//ini_set('display_errors', 0);
-//ini_set('log_errors', 1);
-//ini_set('error_log', './plugins/super_zoom/super_zoom_debug.log');
 
 
 //--------------------------------------------------------------------------------
 add_event_handler('loc_end_picture', 'super_zoom_prepare');
 
 function super_zoom_prepare() {
-  global $template, $picture, $prefixeTable;
+  global $template, $picture, $prefixeTable, $conf ;
 
   if (!isset($picture['current']['path'])) return;
 
   $url_picture = $picture['current']['path'];
   $mime_type = mime_content_type($url_picture);
 
-  // Si ce n'est pas une image JPEG, on arrête là
+  // Si ce n'est pas une image JPEG, on arrête là 
   $mime_liste = ['image/jpeg', 'image/png', 'image/webp'];
   if (!in_array($mime_type, $mime_liste)) return;
   
-  // Si c'est une photosphere on arrête là
+  // Si c'est une photosphere on arrête là 
   if (!empty($picture['current']['is_sphere'])) return;
 
   
@@ -185,11 +224,19 @@ function super_zoom_prepare() {
   }
   // ============= FIN GESTION BACK2FRONT =============
 
-  // Bouton de zoom
-  $template->set_filename('zoomcontrol', ZOOM_PATH . 'template/super_zoom_control.tpl');
-  $template->assign('BT_SUPZ', $template->parse('zoomcontrol', true));
+  // =============  GESTION DE LA POSITION DU BOUTON LOUPE =============================
 
-  // Insertion du bouton via prefilter
+   // Bouton de zoom
+  $template->set_filename('zoomcontrol', ZOOM_PATH . 'template/super_zoom_control.tpl');
+  $button_html = $template->parse('zoomcontrol', true);
+  $template->assign('BT_SUPZ', $button_html);
+
+  // Récupération de la position du bouton
+  $super_zoom_config = isset($conf['super_zoom_config']) ? safe_unserialize($conf['super_zoom_config']) : array('button_position' => 'photo');
+  $button_position = isset($super_zoom_config['button_position']) ? $super_zoom_config['button_position'] : 'photo';
+  $template->assign('BUTTON_POSITION', $button_position);
+  
+  // Insertion du bouton via prefilter (gère les 2 positions)
   $template->set_prefilter('picture', 'addButton_superzoom');
 
   // JS à insérer dans le footer
@@ -202,12 +249,34 @@ function super_zoom_prepare() {
 //======================================================================================
 
 function addButton_superzoom($content) {
-  $search = '{$ELEMENT_CONTENT}';
-  $replacement = '<div class="superzoom"><div class="superzoom-container">{$ELEMENT_CONTENT}{$BT_SUPZ}</div>';
-  return str_replace($search, $replacement, $content);
+  global $template;
+  
+  $button_position = $template->get_template_vars('BUTTON_POSITION');
+  
+  error_log("=== addButton_superzoom ===");
+  error_log("button_position = " . $button_position);
+  
+  if ($button_position == 'navbar') {
+    error_log("Mode NAVBAR");
+    // Pour la navbar : insérer le bouton dans la barre d'outils
+    $search = '<div class="actionButtons">';
+    $replacement = '<div class="actionButtons">{$BT_SUPZ}';
+    $content = str_replace($search, $replacement, $content);
+    
+    // PAS de wrapper du tout, juste ajouter la classe superzoom à theImage
+    $search = '<div id="theImage"';
+    $replacement = '<div id="theImage" class="superzoom"';
+    error_log("=== FIN MODE NAVBAR ===");
+    return str_replace($search, $replacement, $content);
+  } else {
+    error_log("Mode PHOTO");
+    // Pour les autres : comportement par défaut
+    $search = '{$ELEMENT_CONTENT}';
+    $replacement = '<div class="superzoom"><div class="superzoom-container">{$ELEMENT_CONTENT}{$BT_SUPZ}</div></div>';
+    error_log("=== FIN MODE PHOTO ===");
+    return str_replace($search, $replacement, $content);
+  }
 }
-
-
 
 
 //------------------------------------------------------------------------------
