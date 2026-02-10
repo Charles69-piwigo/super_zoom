@@ -1,25 +1,39 @@
 # Plugin Structure: super_zoom
 
-Generated on: 2026-01-26 15:55:57
+Generated on: 2026-01-27 21:22:26
 
 ## Statistics
 
-- **Total directories:** 2
-- **Total files:** 8
+- **Total directories:** 5
+- **Total files:** 19
 
 ## Directory Tree
 
 ```
 📁 super_zoom/
+├── 📁 language
+│   ├── 📁 en_UK
+│   │   ├── 📄 description.txt (10 B)
+│   │   ├── 📄 index.php (610 B)
+│   │   └── 📄 plugin.lang.php (718 B)
+│   ├── 📁 fr_FR
+│   │   ├── 📄 description.txt (10 B)
+│   │   ├── 📄 index.php (610 B)
+│   │   └── 📄 plugin.lang.php (779 B)
+│   └── 📄 index.php (610 B)
 ├── 📁 template
-│   ├── 📄 super_zoom_control.tpl (1.56 KB)
+│   ├── 📄 admin.tpl (1.51 KB)
+│   ├── 📄 super_zoom_control.tpl (1.64 KB)
+│   ├── 📄 super_zoom_navbar.tpl (432 B)
 │   └── 📄 super_zoom_url.tpl (110 B)
 ├── 📁 vanilla
 │   └── 📄 wheel-zoom.min.js (17.33 KB)
+├── 📄 admin.php (1.13 KB)
 ├── 📄 index.php (129 B)
 ├── 📄 LICENSE (1.06 KB)
-├── 📄 main.inc.php (7.54 KB)
-├── 📄 super_zoom.css (2.18 KB)
+├── 📄 main.inc.php (10.54 KB)
+├── 📄 maintain.inc.php (872 B)
+├── 📄 super_zoom.css (3.7 KB)
 └── 📄 super_zoom.js (5.01 KB)
 ```
 

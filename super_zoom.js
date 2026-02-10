@@ -80,48 +80,87 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
-  // Fonction pour fermer proprement la modale
-  function closeModal() {
+  // --- Gestion du hash #zoom dans l'URL ---
+
+  function addZoomToUrl() {
+    if (window.location.hash !== '#zoom') {
+      window.history.pushState(null, '', window.location.pathname + window.location.search + '#zoom');
+    }
+  }
+
+  function removeZoomFromUrl() {
+    if (window.location.hash === '#zoom') {
+      window.history.pushState(null, '', window.location.pathname + window.location.search);
+    }
+  }
+
+  // --- Fonctions d'ouverture / fermeture de la modale ---
+
+  function openZoomModal(updateUrl) {
+    if (isModalOpen) return;
+    dialog.showModal();
+    isModalOpen = true;
+    updateModalImage();
+    if (updateUrl) {
+      addZoomToUrl();
+    }
+  }
+
+  function closeZoomModal(updateUrl) {
     if (!isModalOpen) return;
-    
+
     // Retirer le focus du bouton si c'est lui qui a déclenché la fermeture
     if (document.activeElement === closeButton) {
       closeButton.blur();
     }
-    
+
     // Fermer la modale
     dialog.close();
     isModalOpen = false;
-    
+
     // Restaurer le focus sur le body
     document.body.focus();
-    
+
+    if (updateUrl) {
+      removeZoomFromUrl();
+    }
+
     // NE PAS détruire wzoom ici, on le garde pour la prochaine ouverture
   }
 
-  // Event listeners pour le modal
+  // --- Event listeners pour le modal ---
+
   openButton.addEventListener("click", function() {
-    dialog.showModal();
-    isModalOpen = true;
-    updateModalImage();
+    openZoomModal(true);
   });
-  
+
   closeButton.addEventListener("click", function() {
-    closeModal();
+    closeZoomModal(true);
   });
 
   // Fermeture au clic en dehors de la modale
   dialog.addEventListener('click', function(event) {
     if (event.target === dialog) {
-      closeModal();
+      closeZoomModal(true);
     }
   });
 
-  // Fermeture avec la touche Échap
+  // Fermeture avec la touche Échap (événement natif du dialog)
   dialog.addEventListener('close', function() {
     if (isModalOpen) {
       isModalOpen = false;
       document.body.focus();
+      removeZoomFromUrl();
+    }
+  });
+
+  // --- Navigation avec le bouton retour du navigateur ---
+
+  window.addEventListener('popstate', function() {
+    if (window.location.hash === '#zoom' && !isModalOpen) {
+      openZoomModal(false);
+    } else if (window.location.hash !== '#zoom' && isModalOpen) {
+      closeZoomModal(false);
     }
   });
 
@@ -165,5 +204,12 @@ document.addEventListener('DOMContentLoaded', function () {
         wzoom.prepare();
       }
     });
+
+    // Auto-ouverture si #zoom est présent dans l'URL au chargement
+    if (window.location.hash === '#zoom') {
+      setTimeout(function() {
+        openZoomModal(false);
+      }, 100);
+    }
   }
 });

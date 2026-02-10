@@ -1,19 +1,19 @@
 <div class="titrePage">
-  <h2>Super Zoom - Configuration</h2>
+  <h2>{'super_zoom_page_title'|translate}</h2>
 </div>
 
 <form method="post" action="" class="properties">
   <fieldset>
-    <legend>Position du bouton loupe</legend>
+    <legend>{'super_zoom_button_position'|translate}</legend>
     
-    <p>Choisissez où afficher le bouton loupe sur vos photos :</p>
+    <p>{'super_zoom_button_position_desc'|translate}</p>
     
     <label>
       <input type="radio" name="button_position" value="photo" {if $BUTTON_POSITION == 'photo'}checked="checked"{/if}>
-      <strong>En haut à droite de la photo</strong>
+      <strong>{'super_zoom_position_photo_title'|translate}</strong>
       <br>
       <span style="margin-left: 25px; color: #666;">
-        Le bouton s'affiche à côté de l'image (position par défaut)
+        {'super_zoom_position_photo_desc'|translate}
       </span>
     </label>
     
@@ -21,18 +21,34 @@
     
     <label>
       <input type="radio" name="button_position" value="navbar" {if $BUTTON_POSITION == 'navbar'}checked="checked"{/if}>
-      <strong>Dans la barre de navigation</strong>
+      <strong>{'super_zoom_position_navbar_title'|translate}</strong>
       <br>
       <span style="margin-left: 25px; color: #666;">
-        Le bouton s'affiche dans la barre d'outils de navigation (utile pour certains thèmes avec panneau latéral)
+        {'super_zoom_position_navbar_desc'|translate}
       </span>
     </label>
   </fieldset>
   
   <p>
-    <input type="submit" name="submit" value="Enregistrer la configuration" class="submit">
+    <p style="text-align: left; margin-left: 40px;">
+      <input type="submit" name="submit" value="{'super_zoom_save_config'|translate}" class="submit">
+    </p>    
   </p>
 </form>
+
+<form> </br>
+<fieldset>
+    <legend>{'feature_zoom'|translate}</legend>
+    
+    <p>{'feature_zoom_desc1'|translate}</p>
+    <p>{'feature_zoom_desc2'|translate}</p>
+    <p>{'feature_zoom_desc3'|translate}</p>
+    <p>{'feature_zoom_desc4'|translate}</p>
+    <p>{'feature_zoom_desc5'|translate}</p>
+    
+
+</fieldset>
+
 
 <style>
   .properties fieldset {
