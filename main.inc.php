@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: super_zoom
-Version: 2.1
+Version: 2.2
 Description: super_zoom permet de zoomer/dézoomer sur une image
 Plugin URI: https://piwigo.org/ext/extension_view.php?eid=1039
 Author: Charles69
@@ -19,8 +19,13 @@ Author URI:
  /*
  // ============  VERSIONS de SUPER_ZOOM =========================================================
  // historique des versions
+ 
+ version 2.2 - 19/06/2026
+      corrigé bug avec le bouton loupe dans la barre d'outils
+      corrigé bug avec redirection url
+      corrigé warning avec filigrane
 
- version 2.1 - 10/02/2028
+ version 2.1 - 10/02/2026
       url avec #zoom ouvre la modale
       mode d'emploi, fonctionnalité
       
@@ -110,10 +115,11 @@ function super_zoom_link() {
   $super_zoom_config = isset($conf['super_zoom_config']) ? safe_unserialize($conf['super_zoom_config']) : array('button_position' => 'photo');
   $button_position = isset($super_zoom_config['button_position']) ? $super_zoom_config['button_position'] : 'photo';
   
+  $root = get_absolute_root_url();
   $template->append('footer_elements', '
-    <script src="plugins/super_zoom/vanilla/wheel-zoom.min.js"></script>
-    <script src="plugins/super_zoom/super_zoom.js"></script>
-    <link rel="stylesheet" href="plugins/super_zoom/super_zoom.css" />
+    <script src="' . $root . 'plugins/super_zoom/vanilla/wheel-zoom.min.js"></script>
+    <script src="' . $root . 'plugins/super_zoom/super_zoom.js"></script>
+    <link rel="stylesheet" href="' . $root . 'plugins/super_zoom/super_zoom.css" />
     <script>
       window.superZoomButtonPosition = "' . $button_position . '";
     </script>
@@ -148,7 +154,6 @@ function super_zoom_prepare() {
 
   $ref = new ReflectionClass($derivative);
   $prop = $ref->getProperty('params');
-  $prop->setAccessible(true);
   $params = $prop->getValue($derivative);
 
   $use_watermark = false;

@@ -130,7 +130,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // --- Event listeners pour le modal ---
 
-  openButton.addEventListener("click", function() {
+  openButton.addEventListener("click", function(e) {
+    e.preventDefault();
     openZoomModal(true);
   });
 
