@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: super_zoom
-Version: 2.2
+Version: 2.3
 Description: super_zoom permet de zoomer/dézoomer sur une image
 Plugin URI: https://piwigo.org/ext/extension_view.php?eid=1039
 Author: Charles69
@@ -19,6 +19,9 @@ Author URI:
  /*
  // ============  VERSIONS de SUPER_ZOOM =========================================================
  // historique des versions
+
+ version 2.3 - 20/06/2026
+      corrigé bug avec photosphere / photosphere prioritaire
  
  version 2.2 - 19/06/2026
       corrigé bug avec le bouton loupe dans la barre d'outils
@@ -152,14 +155,20 @@ function super_zoom_prepare() {
 
   $derivative = $picture['current']['derivatives']['large'];
 
-  $ref = new ReflectionClass($derivative);
-  $prop = $ref->getProperty('params');
-  $params = $prop->getValue($derivative);
+  if (is_null($derivative)) return;
 
   $use_watermark = false;
 
-  if (!is_null($params) && property_exists($params, 'use_watermark')) {
-    $use_watermark = $params->use_watermark;
+  try {
+    $ref = new ReflectionClass($derivative);
+    $prop = $ref->getProperty('params');
+    $params = $prop->getValue($derivative);
+
+    if (!is_null($params) && property_exists($params, 'use_watermark')) {
+      $use_watermark = $params->use_watermark;
+    }
+  } catch (Exception $e) {
+    // dérivative non accessible, on continue sans filigrane
   }
 
   // si l'option filigrane est activée on utilise la miniature la plus grande au lieu de l'original
