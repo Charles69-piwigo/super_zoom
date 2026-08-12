@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: super_zoom
-Version: 2.3
+Version: auto
 Description: super_zoom permet de zoomer/dézoomer sur une image
 Plugin URI: https://piwigo.org/ext/extension_view.php?eid=1039
 Author: Charles69
@@ -19,6 +19,9 @@ Author URI:
  /*
  // ============  VERSIONS de SUPER_ZOOM =========================================================
  // historique des versions
+
+ version 2.4 - 22/06/2026
+      conformation au standard get_original_url
 
  version 2.3 - 20/06/2026
       corrigé bug avec photosphere / photosphere prioritaire
@@ -184,9 +187,12 @@ function super_zoom_prepare() {
     $url_original = $url_base . $url_zoom;
   } else {
     // URL absolue de l'image originale
+// trigger_change permet à d'autres plugins d'intercepter l'URL
+    // (ex: private_derivative_protection pour les albums privés)
     $url_base = get_absolute_root_url();
     $url_relative = substr($url_picture, 2);
-    $url_original = $url_base . $url_relative;
+    $src_image = $picture['current']['src_image'];
+    $url_original = trigger_change('get_original_url', $url_base . $url_relative, $src_image);
   }
 
   //================= PLUGIN BACK2FRONT ===============================
@@ -224,9 +230,13 @@ function super_zoom_prepare() {
         $url_base = get_absolute_root_url();
         $url_verso_full = $url_base . $url_verso;
       } else {
+
+        // trigger_change permet à d'autres plugins d'intercepter l'URL du verso
+        include_once(PHPWG_ROOT_PATH . 'include/derivative.inc.php');
         $url_base = get_absolute_root_url();
         $url_relative = substr($verso['path'], 2);
-        $url_verso_full = $url_base . $url_relative;
+        $verso_src = new SrcImage($verso);
+        $url_verso_full = trigger_change('get_original_url', $url_base . $url_relative, $verso_src);
       }
       
       $template->append('footer_elements', '
