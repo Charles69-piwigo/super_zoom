@@ -79,7 +79,7 @@ body.theme-elegant .superzoom-navbar-btn {
 /* ========== MODE PHOTO : Position par défaut à côté de la photo ========== */
 .superzoom-btn-open {
   position: absolute;
-  top: 0;
+  top: 5px;
   left: calc(100% + 16px);
   display: flex;
   align-items: center;
@@ -116,6 +116,10 @@ body.theme-elegant .superzoom-navbar-btn {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.superzoom-viewport.superzoom-grabbing {
+  cursor: grabbing;
 }
 
 .superzoom-content img {

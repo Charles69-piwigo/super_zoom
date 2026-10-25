@@ -70,10 +70,10 @@ document.addEventListener('DOMContentLoaded', function () {
           smoothTimeDrag: 0.1,
           maxScale: 5,
           onGrab: function () {
-            document.getElementById('superzoom-viewport').style.cursor = 'grabbing';
+            document.getElementById('superzoom-viewport').classList.add('superzoom-grabbing');
           },
           onDrop: function () {
-            document.getElementById('superzoom-viewport').style.cursor = 'grab';
+            document.getElementById('superzoom-viewport').classList.remove('superzoom-grabbing');
           },
         });
       };
@@ -181,10 +181,10 @@ document.addEventListener('DOMContentLoaded', function () {
       smoothTimeDrag: 0.1,
       maxScale: 5,
       onGrab: function () {
-        document.getElementById('superzoom-viewport').style.cursor = 'grabbing';
+        document.getElementById('superzoom-viewport').classList.add('superzoom-grabbing');
       },
       onDrop: function () {
-        document.getElementById('superzoom-viewport').style.cursor = 'grab';
+        document.getElementById('superzoom-viewport').classList.remove('superzoom-grabbing');
       },
     });
 

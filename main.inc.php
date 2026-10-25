@@ -20,6 +20,12 @@ Author URI:
  // ============  VERSIONS de SUPER_ZOOM =========================================================
  // historique des versions
 
+ version 2.4.2 - 30/09/2026
+      CSS chargé dans le head : supprime l'apparition furtive du cadre de la loupe
+
+ version 2.4.1 - 30/09/2026
+      loupe sur la photo décalée de 5 px vers le bas
+
  version 2.4 - 22/06/2026
       conformation au standard get_original_url
 
@@ -112,7 +118,19 @@ function super_zoom_admin_menu($menu) {
 }
 
 //----------------------------------------------------------------------------------
-// Chargement scripts JS et CSS dans le footer
+// Chargement du CSS dans le <head> : chargé dans le footer, le bouton loupe
+// s'affichait brièvement sans style à droite de la photo
+add_event_handler('loc_begin_page_header', 'super_zoom_css');
+
+function super_zoom_css() {
+  global $template;
+
+  $root = get_absolute_root_url();
+  $template->append('head_elements', '<link rel="stylesheet" href="' . $root . 'plugins/super_zoom/super_zoom.css" />');
+}
+
+//----------------------------------------------------------------------------------
+// Chargement scripts JS dans le footer
 add_event_handler('loc_begin_page_tail', 'super_zoom_link');
 
 function super_zoom_link() {
@@ -125,7 +143,6 @@ function super_zoom_link() {
   $template->append('footer_elements', '
     <script src="' . $root . 'plugins/super_zoom/vanilla/wheel-zoom.min.js"></script>
     <script src="' . $root . 'plugins/super_zoom/super_zoom.js"></script>
-    <link rel="stylesheet" href="' . $root . 'plugins/super_zoom/super_zoom.css" />
     <script>
       window.superZoomButtonPosition = "' . $button_position . '";
     </script>
