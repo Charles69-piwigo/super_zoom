@@ -10,6 +10,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // WheelZoom
   var imageElement = document.getElementById('superzoom-content').querySelector('img');
+
+  // Bootstrap Darkroom lie jQuery 'swipeleft/swiperight' (= photo suivante) sur "#theImage img",
+  // ce qui inclut l'image de la modale. On la remplace par un clone, sans aucun écouteur.
+  var cleanImage = imageElement.cloneNode(true);
+  imageElement.parentNode.replaceChild(cleanImage, imageElement);
+  imageElement = cleanImage;
   var zoomUpButton = document.querySelector('[data-zoom-up]');
   var zoomDownButton = document.querySelector('[data-zoom-down]');
   var wzoom = null;
@@ -100,6 +106,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (isModalOpen) return;
     dialog.showModal();
     isModalOpen = true;
+    fitDialog();
     updateModalImage();
     if (updateUrl) {
       addZoomToUrl();
@@ -152,6 +159,51 @@ document.addEventListener('DOMContentLoaded', function () {
       isModalOpen = false;
       document.body.focus();
       removeZoomFromUrl();
+    }
+  });
+
+  // --- Isoler la modale des gestes du thème (swipe = photo suivante) ---
+
+  // Sortie du conteneur de la photo : les écouteurs du thème posés sur la photo ne reçoivent plus rien
+  document.body.appendChild(dialog);
+
+  // Ajuste la modale à la zone réellement visible : sur mobile, si la page déborde en largeur
+  // (ex. carrousel du thème), le navigateur dézoome et 100vw ne couvre plus tout l'écran
+  function fitDialog() {
+    var vv = window.visualViewport;
+    if (!vv) return;
+    dialog.style.left = vv.offsetLeft + 'px';
+    dialog.style.top = vv.offsetTop + 'px';
+    dialog.style.width = vv.width + 'px';
+    dialog.style.height = vv.height + 'px';
+    dialog.style.maxWidth = dialog.style.maxHeight = 'none';
+  }
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', function() { if (isModalOpen) fitDialog(); });
+    window.visualViewport.addEventListener('scroll', function() { if (isModalOpen) fitDialog(); });
+  }
+
+  // Bootstrap Darkroom ouvre PhotoSwipe sur le 'doubletap' de #theImage (mobile) : on le retire,
+  // le double tap ouvre le zoom du plugin. Après 'load' pour passer après le $(document).ready du thème.
+  window.addEventListener('load', function() {
+    if (window.jQuery) window.jQuery('#theImage').off('doubletap');
+  });
+
+  // --- Double tap sur la photo (tactile) : ouvre la modale ---
+
+  var lastTap = null;
+
+  document.addEventListener('pointerup', function(e) {
+    if (e.pointerType !== 'touch' || isModalOpen || dialog.contains(e.target)) return;
+    if (!e.target.closest('#theImage, #theMainImage, .superzoom-container')) return;
+
+    var now = Date.now();
+    if (lastTap && now - lastTap.time < 350 &&
+        Math.hypot(e.clientX - lastTap.x, e.clientY - lastTap.y) < 40) {
+      lastTap = null;
+      openZoomModal(true);
+    } else {
+      lastTap = { time: now, x: e.clientX, y: e.clientY };
     }
   });
 

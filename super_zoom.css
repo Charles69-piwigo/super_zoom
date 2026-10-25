@@ -112,6 +112,7 @@ body.theme-elegant .superzoom-navbar-btn {
 }
 
 .superzoom-viewport {
+  touch-action: none;
   cursor: grab;
   display: flex;
   align-items: center;
@@ -190,9 +191,17 @@ body.theme-elegant .superzoom-navbar-btn {
 }
 
 
-/* Mobile : on désactive en n'affichant pas le bouton loupe  */
+/* Mobile : pas de bouton loupe, le zoom s'ouvre par double tap sur la photo */
 @media screen and (max-width: 767px) {
   .superzoom-btn-open {
     display: none !important;
+  }
+}
+/* Mobile : le titre de la galerie (thème) peut déborder en largeur ; le navigateur dézoome alors la page
+   (bande blanche à droite après fermeture de la modale). On empêche le débordement horizontal. */
+@media screen and (max-width: 767px) {
+  html:has(body#thePicturePage),
+  body#thePicturePage {
+    overflow-x: hidden;
   }
 }

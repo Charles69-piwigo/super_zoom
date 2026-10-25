@@ -20,6 +20,10 @@ Author URI:
  // ============  VERSIONS de SUPER_ZOOM =========================================================
  // historique des versions
 
+ version 2.4.3 - 25/10/2026
+      mobile : double tap sur la photo pour ouvrir le zoom (loupe masquée), à la place de PhotoSwipe (Bootstrap Darkroom)
+      mobile : glisser dans le zoom ne change plus de photo ; modale ajustée à l'écran ; plus de bande blanche à la fermeture
+
  version 2.4.2 - 30/09/2026
       CSS chargé dans le head : supprime l'apparition furtive du cadre de la loupe
 
