@@ -20,6 +20,11 @@ Author URI:
  // ============  VERSIONS de SUPER_ZOOM =========================================================
  // historique des versions
 
+ version 2.4.4 - 26/10/2026
+      mobile : double tap fiabilisé sur Firefox Android et Safari iOS (le 2e tap est intercepté avant PhotoSwipe de Darkroom, qui s'ouvrait aléatoirement)
+      mobile : le clic du 1er tap sur l'image map de Piwigo (zones photo précédente/suivante) est différé de 380 ms, pour ne plus changer de photo avant le 2e tap
+      mobile : zones tactiles précédent / album / suivant du thème remises à l'échelle de la photo affichée (elles débordaient quand l'image est réduite)
+
  version 2.4.3 - 25/10/2026
       mobile : double tap sur la photo pour ouvrir le zoom (loupe masquée), à la place de PhotoSwipe (Bootstrap Darkroom)
       mobile : glisser dans le zoom ne change plus de photo ; modale ajustée à l'écran ; plus de bande blanche à la fermeture

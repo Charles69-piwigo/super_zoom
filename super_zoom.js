@@ -185,27 +185,89 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // Bootstrap Darkroom ouvre PhotoSwipe sur le 'doubletap' de #theImage (mobile) : on le retire,
   // le double tap ouvre le zoom du plugin. Après 'load' pour passer après le $(document).ready du thème.
-  window.addEventListener('load', function() {
+  function offDoubleTap() {
     if (window.jQuery) window.jQuery('#theImage').off('doubletap');
-  });
+  }
+  if (document.readyState === 'complete') offDoubleTap();
+  else window.addEventListener('load', offDoubleTap);
+
+  // --- Image map du thème : recalage des zones précédent / album / suivant ---
+  // Les coordonnées des <area> sont en pixels de la taille d'origine ; quand le CSS réduit la
+  // photo (mobile), elles ne suivent pas : « précédent » couvre presque toute l'image et
+  // « suivant » sort de l'écran. On les remet à l'échelle de l'image affichée.
+
+  function rescaleAreas() {
+    var img = document.querySelector('#theImage img[usemap]');
+    if (!img || !img.clientWidth) return;
+    var map = document.querySelector('map[name="' + img.getAttribute('usemap').replace('#', '') + '"]');
+    if (!map) return;
+    var areas = map.querySelectorAll('area[coords]');
+    var refW = 0, refH = 0;
+    areas.forEach(function(a) {
+      if (!a.dataset.szCoords) a.dataset.szCoords = a.getAttribute('coords');
+      var c = a.dataset.szCoords.split(',').map(Number);
+      refW = Math.max(refW, c[2]);
+      refH = Math.max(refH, c[3]);
+    });
+    if (!refW || !refH) return;
+    var kx = img.clientWidth / refW, ky = img.clientHeight / refH;
+    areas.forEach(function(a) {
+      var c = a.dataset.szCoords.split(',').map(Number);
+      a.setAttribute('coords', [c[0] * kx, c[1] * ky, c[2] * kx, c[3] * ky].map(Math.round).join(','));
+    });
+  }
+
+  window.addEventListener('load', rescaleAreas);
+  window.addEventListener('resize', rescaleAreas);
+  window.addEventListener('orientationchange', rescaleAreas);
+  if (document.readyState === 'complete') rescaleAreas();
 
   // --- Double tap sur la photo (tactile) : ouvre la modale ---
 
+  // Écoute en phase de capture sur document (touchend) : on passe avant les handlers du thème
+  // sur #theImage, et on coupe le touchend du 2e tap pour que le 'doubletap' (PhotoSwipe) ne se
+  // déclenche jamais, quel que soit le moment où le thème le lie (le .off() ci-dessus est aléatoire
+  // sur Firefox/Safari). Ne PAS bloquer touchstart : jquery.mobile-events y mémorise le point de
+  // départ de ses swipes, et un état périmé déclenchait 'swiperight' (= photo précédente).
   var lastTap = null;
 
-  document.addEventListener('pointerup', function(e) {
-    if (e.pointerType !== 'touch' || isModalOpen || dialog.contains(e.target)) return;
-    if (!e.target.closest('#theImage, #theMainImage, .superzoom-container')) return;
+  function isSecondTap(t) {
+    return lastTap && Date.now() - lastTap.time < 350 &&
+      Math.hypot(t.clientX - lastTap.x, t.clientY - lastTap.y) < 40;
+  }
 
-    var now = Date.now();
-    if (lastTap && now - lastTap.time < 350 &&
-        Math.hypot(e.clientX - lastTap.x, e.clientY - lastTap.y) < 40) {
+  function tapTarget(e) {
+    return !isModalOpen && e.target.closest && !dialog.contains(e.target) &&
+      e.target.closest('#theImage, #theMainImage, .superzoom-container') &&
+      e.changedTouches && e.changedTouches.length === 1 && e.touches.length <= 1;
+  }
+
+  // Piwigo place une image map (<area> précédent/suivant) sur la photo : le clic synthétisé du
+  // 1er tap navigue aussitôt vers la photo voisine, avant que le 2e tap n'arrive. On diffère donc
+  // la navigation de ce clic tactile ; elle est annulée si un double tap suit.
+  var pendingNav = null;
+  document.addEventListener('click', function(e) {
+    var area = e.target.closest && e.target.closest('area[href]');
+    if (!area || !lastTap || Date.now() - lastTap.time > 500) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    clearTimeout(pendingNav);
+    pendingNav = setTimeout(function() { window.location.href = area.href; }, 380);
+  }, true);
+
+  document.addEventListener('touchend', function(e) {
+    if (!tapTarget(e)) return;
+    var t = e.changedTouches[0];
+    if (isSecondTap(t)) {
       lastTap = null;
+      clearTimeout(pendingNav);
+      e.stopImmediatePropagation();
+      if (e.cancelable) e.preventDefault();
       openZoomModal(true);
     } else {
-      lastTap = { time: now, x: e.clientX, y: e.clientY };
+      lastTap = { time: Date.now(), x: t.clientX, y: t.clientY };
     }
-  });
+  }, true);
 
   // --- Navigation avec le bouton retour du navigateur ---
 
