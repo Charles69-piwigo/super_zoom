@@ -19,6 +19,39 @@ Author URI:
  /*
  // ============  VERSIONS de SUPER_ZOOM =========================================================
  // historique des versions
+ version 2.5 - 31/10/2026
+      regroupement des versions v2.4.1 à v2.4.12
+      pour publication sur PEM
+      
+ version 2.4.12 - 30/10/2026
+      mobile : double tap dans la modale pour la fermer (hors boutons), sans clic parasite sur la photo en dessous
+      PC : double tap au touchpad (ou double clic) dans la modale pour la fermer
+      iPhone : touch-action: manipulation sur la photo, pour que Safari iOS ne garde pas le double tap pour son zoom natif (double tap qui n'ouvrait plus la modale)
+      iPhone : la modale ouverte par double tap se refermait aussitôt (clic / dblclick synthétisé retombant sur la modale) ; délais anti-rebond à l'ouverture
+      Mac / Safari : pinch au touchpad (événements gesture*) sur la photo pour ouvrir le zoom
+      PC : double tap au touchpad (ou double clic) sur la photo pour ouvrir le zoom ; le clic simple sur les zones précédent/album/suivant de la photo est différé de 350 ms pour laisser passer le 2e clic
+
+ version 2.4.11 - 30/10/2026
+      PC : pinch au touchpad (molette + Ctrl, écartement) sur la photo pour ouvrir le zoom au lieu de zoomer la page ; dans la modale le pinch ne zoome plus la page
+
+ version 2.4.10 - 30/10/2026
+      mobile : écartement à deux doigts (pinch) sur la photo pour ouvrir le zoom, comme Google Photos ; le double tap reste actif
+
+ version 2.4.9 - 30/10/2026
+      boutons + et - grisés (désactivés) quand le zoom maxi / mini est atteint, quel que soit le moyen de zoom (boutons, molette, pinch)
+
+ version 2.4.8 - 30/10/2026
+      iPhone : taps rapides sur + / - ne déclenchent plus le zoom natif de la page (touch-action: manipulation) et ne ferment plus la modale (fermeture au clic sur le fond seulement si le geste y a commencé)
+
+ version 2.4.7 - 30/10/2026
+      mobile : swipe horizontal sur la photo (< 768px, modale fermée) pour passer à la photo suivante / précédente, via <link rel="next|prev"> ; le thème Darkroom n'en fournit pas selon sa config
+
+ version 2.4.6 - 30/10/2026
+      mobile (Darkroom) : le titre du site (.navbar-brand, nowrap) débordait de l'écran et faisait glisser la page avec une bande blanche à droite ; il passe maintenant à la ligne (< 768px), sur toutes les pages (album compris) et pas seulement la page photo
+      CSS et JS du plugin chargés avec ?v=<date du fichier> : les mobiles ne gardent plus une ancienne version en cache
+
+ version 2.4.5 - 29/10/2026
+      correctif : plus d'erreur JS « Cannot read properties of null » sur une vidéo (modale non rendue côté PHP, le script se retire proprement)
 
  version 2.4.4 - 26/10/2026
       mobile : double tap fiabilisé sur Firefox Android et Safari iOS (le 2e tap est intercepté avant PhotoSwipe de Darkroom, qui s'ouvrait aléatoirement)
@@ -135,7 +168,7 @@ function super_zoom_css() {
   global $template;
 
   $root = get_absolute_root_url();
-  $template->append('head_elements', '<link rel="stylesheet" href="' . $root . 'plugins/super_zoom/super_zoom.css" />');
+  $template->append('head_elements', '<link rel="stylesheet" href="' . $root . 'plugins/super_zoom/super_zoom.css?v=' . @filemtime(__DIR__ . '/super_zoom.css') . '" />');
 }
 
 //----------------------------------------------------------------------------------
@@ -151,7 +184,7 @@ function super_zoom_link() {
   $root = get_absolute_root_url();
   $template->append('footer_elements', '
     <script src="' . $root . 'plugins/super_zoom/vanilla/wheel-zoom.min.js"></script>
-    <script src="' . $root . 'plugins/super_zoom/super_zoom.js"></script>
+    <script src="' . $root . 'plugins/super_zoom/super_zoom.js?v=' . @filemtime(__DIR__ . '/super_zoom.js') . '"></script>
     <script>
       window.superZoomButtonPosition = "' . $button_position . '";
     </script>

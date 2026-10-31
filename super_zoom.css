@@ -152,6 +152,24 @@ body.theme-elegant .superzoom-navbar-btn {
   aspect-ratio: 1;
   cursor: pointer;
   z-index: 10;
+  /* iOS : des taps rapides sur + / - déclenchaient le zoom natif de la page (double tap) */
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* iOS : sans ça Safari réserve le double tap au zoom natif de la page et nous retarde / avale le 2e tap */
+#theImage,
+#theMainImage,
+.superzoom-container {
+  touch-action: manipulation;
+}
+
+/* + / − grisés quand l'échelle maxi / mini est atteinte */
+.superzoom-dialog-controls .superzoom-dialog-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
 }
 
 .superzoom-dialog {
@@ -203,5 +221,12 @@ body.theme-elegant .superzoom-navbar-btn {
   html:has(body#thePicturePage),
   body#thePicturePage {
     overflow-x: hidden;
+  }
+  /* Cause du débordement : le titre du site (nowrap de Bootstrap) dépasse l'écran et la page glisse
+     latéralement. On l'autorise à passer à la ligne. */
+  .navbar-brand {
+    white-space: normal;
+    max-width: 100%;
+    overflow-wrap: anywhere;
   }
 }
