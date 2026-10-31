@@ -6,7 +6,7 @@
 
 ## Français
 
-**super_zoom** est un plugin [Piwigo](https://piwigo.org/) qui ajoute un zoom plein écran sur la page d'une photo : une fenêtre (modale) dans laquelle on peut agrandir l'image jusqu'à 5× et la déplacer, à la souris, au touchpad ou au doigt. Il est conçu pour le thème **Bootstrap Darkroom**.
+**super_zoom** est un plugin [Piwigo](https://piwigo.org/) qui ajoute un zoom plein écran sur la page d'une photo : une fenêtre (modale) dans laquelle on peut agrandir l'image jusqu'à 5× et la déplacer, à la souris, au touchpad ou au doigt. Il est conçu pour le thème **Bootstrap Darkroom**, sur tous les appareils (PC, Mac, mobiles, tablettes). Il fonctionne aussi avec les thèmes **Modus** et **Elegant**, uniquement sur PC et Mac.
 
 Le plugin s'appuie sur la bibliothèque [vanilla-js-wheel-zoom](https://github.com/worka/vanilla-js-wheel-zoom) (licence MIT, voir `LICENSE`).
 
@@ -42,7 +42,8 @@ Remarques :
 
 ### Compatibilité
 
-- **Bootstrap Darkroom** : les gestes tactiles du plugin tiennent compte du double tap / PhotoSwipe et du carrousel du thème. Le titre du site passe à la ligne sur mobile (sinon il fait déborder la page).
+- **Bootstrap Darkroom** (PC, Mac, mobiles, tablettes) : les gestes tactiles du plugin tiennent compte du double tap / PhotoSwipe et du carrousel du thème. Le titre du site passe à la ligne sur mobile (sinon il fait déborder la page).
+- **Modus**, **Elegant** (PC et Mac uniquement) : zoom à la souris et au touchpad. Les gestes tactiles mobiles ne sont pas pris en charge avec ces thèmes.
 - **Filigrane** : le zoom utilise la plus grande version sans filigrane, pas l'original.
 - **private_derivative_protection** : l'URL de l'image passe par le filtre `get_original_url`.
 - **Back2Front** : le verso est zoomable comme le recto.
@@ -64,7 +65,7 @@ Le plugin utilise vanilla-js-wheel-zoom, © 2020 worka, sous licence MIT (fichie
 
 ## English
 
-**super_zoom** is a [Piwigo](https://piwigo.org/) plugin that adds a full-screen zoom to the photo page: a modal window where the image can be magnified up to 5× and panned, with a mouse, a touchpad or a finger. It is designed for the **Bootstrap Darkroom** theme.
+**super_zoom** is a [Piwigo](https://piwigo.org/) plugin that adds a full-screen zoom to the photo page: a modal window where the image can be magnified up to 5× and panned, with a mouse, a touchpad or a finger. It is designed for the **Bootstrap Darkroom** theme, on every device (PC, Mac, phones, tablets). It also works with the **Modus** and **Elegant** themes, on PC and Mac only.
 
 It is built on [vanilla-js-wheel-zoom](https://github.com/worka/vanilla-js-wheel-zoom) (MIT license, see `LICENSE`).
 
@@ -100,7 +101,8 @@ Notes:
 
 ### Compatibility
 
-- **Bootstrap Darkroom**: the plugin's touch gestures take the theme's double tap / PhotoSwipe and carousel into account. On mobile the site title wraps (otherwise it makes the page overflow).
+- **Bootstrap Darkroom** (PC, Mac, phones, tablets): the plugin's touch gestures take the theme's double tap / PhotoSwipe and carousel into account. On mobile the site title wraps (otherwise it makes the page overflow).
+- **Modus**, **Elegant** (PC and Mac only): zoom with a mouse or a touchpad. Mobile touch gestures are not supported with these themes.
 - **Watermark**: the zoom uses the largest watermark-free derivative, not the original.
 - **private_derivative_protection**: the image URL goes through the `get_original_url` filter.
 - **Back2Front**: the verso can be zoomed like the recto.
